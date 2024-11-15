@@ -1,0 +1,177 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R1_BOG
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+ipv6 unicast-routing
+!
+no ipv6 cef
+!
+ipv6 dhcp pool VLAN10-LocalPool
+ address prefix 2001:1200:A12:10::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name guest.local
+!
+ipv6 dhcp pool VLAN20-LocalPool
+ address prefix 2001:1200:A12:20::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name internal.local
+!
+ipv6 dhcp pool VLAN40-LocalPool
+ address prefix 2001:1200:A12:40::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name serverprinters.local
+!
+ipv6 dhcp pool VLAN99-LocalPool
+ address prefix 2001:1200:A12:99::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name native.local
+!
+!
+!
+!
+license udi pid CISCO2811/K9 sn FTX1017572E-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/0.10
+ encapsulation dot1Q 10
+ no ip address
+ ipv6 traffic-filter SNMP_BOG in
+ ipv6 address 2001:1200:A12:10::1/64
+ ipv6 nd managed-config-flag
+ ipv6 dhcp server VLAN10-LocalPool
+!
+interface FastEthernet0/0.20
+ encapsulation dot1Q 20
+ no ip address
+ ipv6 traffic-filter SNMP_BOG in
+ ipv6 address 2001:1200:A12:20::1/64
+ ipv6 nd managed-config-flag
+ ipv6 dhcp server VLAN20-LocalPool
+!
+interface FastEthernet0/0.40
+ encapsulation dot1Q 40
+ no ip address
+ ipv6 traffic-filter SNMP_BOG in
+ ipv6 address 2001:1200:A12:40::1/64
+ ipv6 nd managed-config-flag
+ ipv6 dhcp server VLAN40-LocalPool
+!
+interface FastEthernet0/0.99
+ encapsulation dot1Q 99
+ no ip address
+ ipv6 traffic-filter SNMP_BOG in
+ ipv6 address 2001:1200:A12:99::1/64
+ ipv6 nd managed-config-flag
+ ipv6 dhcp server VLAN99-LocalPool
+!
+interface FastEthernet0/1
+ no ip address
+ ipv6 traffic-filter WEB_ACL out
+ duplex auto
+ speed auto
+ ipv6 address 2001:1200:C12:1::1/64
+!
+interface Serial0/0/0
+ no ip address
+ encapsulation ppp
+ ipv6 address 2001:1200:C12:2::1/64
+ ipv6 eigrp 100
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router rip
+!
+ipv6 router eigrp 100
+ eigrp router-id 2.2.2.2
+ no shutdown 
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 193.0.2.246 
+!
+ip flow-export version 9
+!
+ipv6 route 2001:1200:B22::/48 2001:1200:A12::2
+ipv6 route ::/0 2001:1200:C12:2::2
+ipv6 route 2001:1200:D22:2::/64 2001:1200:E12:1::1
+!
+ip access-list extended VPN_IPSEC
+ permit ip host 193.0.2.245 host 193.0.2.249
+ permit ip host 193.0.2.249 host 193.0.2.245
+ipv6 access-list WEB_ACL
+ permit tcp 2001:1200:A12:20::/64 any eq 443
+ permit tcp 2001:1200:A12:40::/64 any eq 443
+ permit tcp 2001:1200:A12:99::/64 any eq 443
+ permit tcp 2001:1200:A12:10::/64 any eq www
+ permit udp any host 2001:1200:C12:1::20 eq domain
+ permit tcp any host 2001:1200:C12:1::20 eq domain
+ deny tcp 2001:1200:A12:20::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:A12:40::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:A12:99::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:A12:10::/64 host 2001:1200:C12:1::10 eq 443
+ permit tcp 2001:1200:B22:C99::/64 any eq 443
+ permit tcp 2001:1200:B22:C12::/64 any eq 443
+ permit tcp 2001:1200:B22:D22::/64 any eq 443
+ permit tcp 2001:1200:B22:A12::/64 any eq www
+ deny tcp 2001:1200:B22:C99::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:B22:C12::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:B22:D22::/64 host 2001:1200:C12:1::10 eq www
+ deny tcp 2001:1200:B22:A12::/64 host 2001:1200:C12:1::10 eq 443
+ permit ipv6 any any
+!
+!
+!
+!
+snmp-server community R1_Public RO
+snmp-server community R1_private RW
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+

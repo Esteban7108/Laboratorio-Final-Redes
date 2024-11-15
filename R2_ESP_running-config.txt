@@ -1,0 +1,160 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R2_ESP
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+ipv6 unicast-routing
+!
+no ipv6 cef
+!
+ipv6 dhcp pool DHCPV6_Guest
+ address prefix 2001:1200:B22:A12::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name guest.local
+!
+ipv6 dhcp pool DHCPV6_Internal
+ address prefix 2001:1200:B22:C12::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name internal.local
+!
+ipv6 dhcp pool DHCPV6_ServerPrinters
+ address prefix 2001:1200:B22:D22::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name serverprinters.local
+!
+ipv6 dhcp pool DHCPV6_Native
+ address prefix 2001:1200:B22:C99::/64 lifetime 172800 86400
+ dns-server 2001:1200:C12:1::20
+ domain-name native.local
+!
+!
+!
+!
+license udi pid CISCO2811/K9 sn FTX1017916J-
+!
+!
+!
+crypto isakmp policy 10
+ encr aes
+ authentication pre-share
+ group 2
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/0.10
+ description Conexion a VLAN 10 - Guest
+ encapsulation dot1Q 10
+ no ip address
+ ipv6 address 2001:1200:B22:A12::1/64
+ ipv6 nd other-config-flag
+ ipv6 dhcp server Stateless-DNS
+!
+interface FastEthernet0/0.20
+ description Conexion a VLAN 20 - Internal
+ encapsulation dot1Q 20
+ no ip address
+ ipv6 address 2001:1200:B22:C12::1/64
+ ipv6 nd other-config-flag
+ ipv6 dhcp server Stateless-DNS
+!
+interface FastEthernet0/0.40
+ description Conexion a VLAN 40 - ServerPrinters
+ encapsulation dot1Q 40
+ no ip address
+ ipv6 address 2001:1200:B22:D22::1/64
+ ipv6 nd other-config-flag
+ ipv6 dhcp server Stateless-DNS
+!
+interface FastEthernet0/0.99
+ description Conexion a VLAN 99 - Native
+ encapsulation dot1Q 99
+ no ip address
+ ipv6 address 2001:1200:B22:C99::1/64
+ ipv6 nd other-config-flag
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/0/0
+ no ip address
+ encapsulation ppp
+ ipv6 address 2001:1200:D22:1::1/64
+ ipv6 eigrp 100
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ipv6 router eigrp 100
+ eigrp router-id 1.1.1.1
+ shutdown 
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 193.0.2.250 
+!
+ip flow-export version 9
+!
+ipv6 route 2001:1200:A12::/48 2001:1200:A12::1
+ipv6 route 2001:1200:C12::/48 2001:1200:A12::1
+ipv6 route 2001:1200:C12:3::/64 2001:1200:E12:1::2
+ipv6 route 2001:1200:D22:1::/64 2001:1200:A12::2
+ipv6 route ::/0 2001:1200:D22:1::2
+!
+ip access-list extended VPN_IPSEC
+ permit ip host 193.0.2.249 host 193.0.2.245
+ip access-list extended IPsecACL
+!
+!
+!
+!
+snmp-server community R2_Public RO
+snmp-server community R2_Private RW
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
